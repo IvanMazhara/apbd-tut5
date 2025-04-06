@@ -9,7 +9,7 @@ public class EmpDeptSalgradeTests
     {
         var emps = Database.GetEmps();
 
-        List<Emp> result = null;
+        List<Emp> result = emps.Where(e => e.Job == "SALESMAN").ToList();
 
         Assert.Equal(2, result.Count);
         Assert.All(result, e => Assert.Equal("SALESMAN", e.Job));
@@ -22,7 +22,7 @@ public class EmpDeptSalgradeTests
     {
         var emps = Database.GetEmps();
 
-        List<Emp> result = null; 
+        List<Emp> result = emps.Where(e => e.DeptNo == 30).OrderByDescending(e => e.Sal).ToList(); 
 
         Assert.Equal(2, result.Count);
         Assert.True(result[0].Sal >= result[1].Sal);
@@ -36,7 +36,16 @@ public class EmpDeptSalgradeTests
         var emps = Database.GetEmps();
         var depts = Database.GetDepts();
 
-        List<Emp> result = null; 
+        var chicagoDeptList =
+            (from d in depts
+            where d.Loc == "CHICAGO"
+            select d.DeptNo).ToList();
+
+        List<Emp> result =
+        (from e in emps
+            where chicagoDeptList.Contains(e.DeptNo)
+            select e).ToList();
+        
 
         Assert.All(result, e => Assert.Equal(30, e.DeptNo));
     }
@@ -48,13 +57,15 @@ public class EmpDeptSalgradeTests
     {
         var emps = Database.GetEmps();
 
-        //var result = null; 
+        var result = 
+            from e in emps
+            select new {e.EName, e.Sal}; 
         
-        // Assert.All(result, r =>
-        // {
-        //     Assert.False(string.IsNullOrWhiteSpace(r.EName));
-        //     Assert.True(r.Sal > 0);
-        // });
+         Assert.All(result, r =>
+         {
+             Assert.False(string.IsNullOrWhiteSpace(r.EName));
+             Assert.True(r.Sal > 0);
+         });
     }
 
     // 5. JOIN Emp to Dept
@@ -65,9 +76,12 @@ public class EmpDeptSalgradeTests
         var emps = Database.GetEmps();
         var depts = Database.GetDepts();
 
-        //var result = null; 
+        var result = 
+                from e in emps
+                join d in depts on e.DeptNo equals d.DeptNo 
+                select new {e.EName, d.DName}; 
 
-        //Assert.Contains(result, r => r.DName == "SALES" && r.EName == "ALLEN");
+        Assert.Contains(result, r => r.DName == "SALES" && r.EName == "ALLEN");
     }
 
     // 6. Group by DeptNo
